@@ -1,0 +1,22 @@
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+
+class Decrypter {
+    private static final String ALGORITHM = "AES";
+    private static final byte[] keyValue = new byte[]{ 'T', 'h', 'e', 'B', 'e', 's', 't', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
+
+    public static String decrypt(String encryptedData) throws Exception {
+        SecretKey key = generateKey();
+        Cipher c = Cipher.getInstance(ALGORITHM);
+        c.init(Cipher.DECRYPT_MODE, key);
+        byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
+        byte[] decValue = c.doFinal(decodedValue);
+        return new String(decValue);
+    }
+
+    private static SecretKey generateKey() {
+        return new SecretKeySpec(keyValue, ALGORITHM);
+    }
+}

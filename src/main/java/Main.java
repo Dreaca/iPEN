@@ -6,6 +6,9 @@ public class Main {
                 try {
                     String encryptedIPAddress = Encrypter.encrypt(ipAddress);
                     System.out.println("Encrypted IP Address: " + encryptedIPAddress);
+
+                    String decryptedIPAddress = Decrypter.decrypt(encryptedIPAddress);
+                    System.out.println("Decrypted IP Address: " + decryptedIPAddress);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
