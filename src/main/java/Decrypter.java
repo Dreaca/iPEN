@@ -7,16 +7,14 @@ class Decrypter {
     private static final String ALGORITHM = "AES";
     private static final byte[] keyValue = new byte[]{ 'T', 'h', 'e', 'B', 'e', 's', 't', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
 
-    public static String decrypt(String encryptedData) throws Exception {
-        SecretKey key = generateKey();
+    public static String decrypt(String encryptedData, SecretKey key) throws Exception {
+        byte[] keyBytes = KeyGen.getKeyBytes(key);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, ALGORITHM);
         Cipher c = Cipher.getInstance(ALGORITHM);
-        c.init(Cipher.DECRYPT_MODE, key);
+        c.init(Cipher.DECRYPT_MODE, secretKeySpec);
         byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
         byte[] decValue = c.doFinal(decodedValue);
         return new String(decValue);
     }
 
-    private static SecretKey generateKey() {
-        return new SecretKeySpec(keyValue, ALGORITHM);
-    }
 }

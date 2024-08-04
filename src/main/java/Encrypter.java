@@ -8,16 +8,12 @@ class Encrypter {
     private static final String ALGORITHM = "AES";
     private static final byte[] keyValue = new byte[]{ 'T', 'h', 'e', 'B', 'e', 's', 't', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
 
-    static SecretKey key;
-    public static String encrypt(String data) throws Exception {
-        key = generateKey();
+    public static String encrypt(String data,SecretKey key) throws Exception {
         Cipher c = Cipher.getInstance(ALGORITHM);
         c.init(Cipher.ENCRYPT_MODE, key);
         byte[] encVal = c.doFinal(data.getBytes());
         return Base64.getEncoder().encodeToString(encVal);
     }
 
-    private static SecretKey generateKey() {
-        return new SecretKeySpec(keyValue, ALGORITHM);
-    }
+
 }

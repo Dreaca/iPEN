@@ -1,38 +1,31 @@
-// Client.java
-
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) throws Exception {
-        String ipAddress = "192.168.84.20"; // original IP address
+        Socket socket = new Socket("192.168.84.20", 8000);
+        System.out.println("Connected to server");
 
-        String encryptedIpAddress = Encrypter.encrypt(ipAddress);
-        System.out.println("Encrypted IP address: " + encryptedIpAddress);
+        // Receive challenge from server
+        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        String challenge = reader.readLine();
+        System.out.println("Server challenge: " + challenge);
 
-        String decryptedIpAddress = Decrypter.decrypt(encryptedIpAddress);
-        System.out.println("Decrypted IP address: " + decryptedIpAddress);
+        // Send decryption key to server
+        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+        writer.println(KeyGen.generateKey());
 
-        try {
-            Socket socket = new Socket(decryptedIpAddress, 8000);
-            System.out.println("Connected to server");
+        // Receive response from server
+        String response = reader.readLine();
+        System.out.println("Server response: " + response);
 
-            // Send data to server
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            writer.println("Hello from client!");
-
-            // Read response from server
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            String message = reader.readLine();
-            System.out.println("Server says: " + message);
-
-            // Close the socket
+        if (response.equals("Access granted")) {
+            System.out.println("Connected to server successfully");
+            // Continue with the connection
+        } else {
+            System.out.println("Access denied");
             socket.close();
-        } catch (UnknownHostException e) {
-            System.out.println("Failed to connect to server. IP address may be encrypted or invalid.");
-        } catch (IOException e) {
-            System.out.println("Failed to connect to server. IP address may be encrypted or invalid.");
-            System.out.println("Error message: " + e.getMessage());
         }
     }
 }
