@@ -1,14 +1,21 @@
 import java.net.*;
 import java.io.*;
+import java.util.Base64;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Server {
     public static void main(String[] args) throws Exception {
-        String ipAddress = "192.168.84.20"; // server's IP address
+        String ipAddress = IpReader.getIPAddress(); // server's IP address
         SecretKeySpec secretKey = (SecretKeySpec) KeyGen.generateKey();
+        String keyBytes1 = KeyGen.getKeyBytes(secretKey);
+
+        System.out.println("The Key is : "+keyBytes1);
         String encryptedIpAddress = Encrypter.encrypt(ipAddress, secretKey);
         System.out.println("Encrypted IP address: " + encryptedIpAddress);
+
+        String decryptedIpAddress1 = Decrypter.decrypt(encryptedIpAddress, secretKey);
+        System.out.println("Decrypted IP address: " + decryptedIpAddress1);
 
         ServerSocket serverSocket = new ServerSocket(8000);
         System.out.println("Server started. Waiting for client connection...");
@@ -23,24 +30,34 @@ public class Server {
         // Receive decryption key from client
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         String decryptionKey = reader.readLine();
+
         System.out.println("Decryption key: " + decryptionKey);
 
-// Convert the decryption key string to a byte array
-        byte[] decryptionKeyBytes = decryptionKey.getBytes();
+        String base64Key = decryptionKey;
 
-// Create a SecretKeySpec from the decryption key bytes
-        SecretKeySpec secretKeySpec = new SecretKeySpec(decryptionKeyBytes, "AES");
+        byte[] keyBytes = Base64.getDecoder().decode(base64Key);
 
-// Attempt to decrypt IP address using provided decryption key
-        String decryptedIpAddress = Decrypter.decrypt(encryptedIpAddress, secretKeySpec);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
 
-        if (decryptedIpAddress!= null && decryptedIpAddress.equals(ipAddress)) {
-            System.out.println("Decryption successful. Granting access to client");
-            writer.println("Access granted");
-            // Continue with the connection
-        } else {
-            System.out.println("Decryption failed. Terminating connection");
+        try {
+            String decryptedIpAddress = Decrypter.decrypt(encryptedIpAddress, secretKeySpec);
+
+            if (decryptedIpAddress!= null && decryptedIpAddress.equals(ipAddress)) {
+                System.out.println("Decryption successful. Granting access to client");
+                writer.println("Access granted");
+                // Continue with the connection
+            } else {
+                System.out.println("Decryption failed. Terminating connection");
+                socket.close();
+            }
+        } catch (BadPaddingException e) {
+            // Handle bad padding exception
+            System.out.println("Error: Bad padding. Decryption failed.");
+            writer.println("Access denied");
             socket.close();
+        } catch (Exception e) {
+            // Handle other exceptions
+            e.printStackTrace();
         }
     }
 }
